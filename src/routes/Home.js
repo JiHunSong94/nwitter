@@ -8,7 +8,7 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
-import { getStorage, ref, uploadBytes } from "firebase/storage";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import Nweet from "../components/Nweet";
 
 const Home = ({ userObj }) => {
@@ -33,16 +33,22 @@ const Home = ({ userObj }) => {
   };
   const onSubmit = async (event) => {
     event.preventDefault();
-    const storage = getStorage();
-    const fileRef = ref(storage, `${userObj.uid}/${uuidv4()}`);
-    const response = await uploadBytes(fileRef, { attachment });
-    console.log(response);
-    /* await addDoc(collection(db, "nweets"), {
+    let attachmentUrl = "";
+    if (attachment !== "") {
+      const storage = getStorage();
+      const attachmentRef = ref(storage, `${userObj.uid}/${uuidv4()}`);
+      await uploadBytes(attachmentRef, { attachment });
+      attachmentUrl = await getDownloadURL(attachmentRef);
+    }
+    const nweetObj = {
       text: nweet,
       createdAt: Date.now(),
       creatorId: userObj.uid,
-    });
-    setNweet(""); */
+      attachmentUrl,
+    };
+    await addDoc(collection(db, "nweets"), { nweetObj });
+    setNweet("");
+    setAttachment("");
   };
   const onFileChange = (event) => {
     const {
