@@ -13,11 +13,13 @@ function App() {
       }
       setInit(true);
     });
-  }, []);
+  });
   return (
     <>
       {init ? (
-        <AppRouter isLoggedIn={Boolean(userObj)} userObj={userObj} />
+        <>
+          <AppRouter isLoggedIn={Boolean(userObj)} userObj={userObj} />
+        </>
       ) : (
         "Initializing..."
       )}

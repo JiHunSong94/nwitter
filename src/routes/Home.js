@@ -1,22 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "../firebase";
+import { collection, addDoc, onSnapshot, query } from "firebase/firestore";
 import {
-  collection,
-  addDoc,
-  onSnapshot,
-  query,
-  orderBy,
-} from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+  getStorage,
+  ref,
+  uploadString,
+  getDownloadURL,
+} from "firebase/storage";
 import Nweet from "../components/Nweet";
 
 const Home = ({ userObj }) => {
   const [nweet, setNweet] = useState("");
   const [nweets, setNweets] = useState([]);
-  const [attachment, setAttachment] = useState();
+  const [attachment, setAttachment] = useState("");
   useEffect(() => {
-    const q = query(collection(db, "nweets"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "nweets"));
     onSnapshot(q, (snapshot) => {
       const nweetArray = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -24,7 +23,7 @@ const Home = ({ userObj }) => {
       }));
       setNweets(nweetArray);
     });
-  });
+  }, []);
   const onChange = async (event) => {
     const {
       target: { value },
@@ -37,7 +36,7 @@ const Home = ({ userObj }) => {
     if (attachment !== "") {
       const storage = getStorage();
       const attachmentRef = ref(storage, `${userObj.uid}/${uuidv4()}`);
-      await uploadBytes(attachmentRef, { attachment });
+      await uploadString(attachmentRef, attachment, "data_url");
       attachmentUrl = await getDownloadURL(attachmentRef);
     }
     const nweetObj = {
@@ -79,7 +78,12 @@ const Home = ({ userObj }) => {
         <input type="submit" value="Nweet" />
         {attachment && (
           <div>
-            <img src={attachment} width="50px" height="50px" />
+            <img
+              alt="이미지 미리보기"
+              src={attachment}
+              width="50px"
+              height="50px"
+            />
             <button onClick={onClearAttachment}>Clear</button>
           </div>
         )}
@@ -88,8 +92,9 @@ const Home = ({ userObj }) => {
         {nweets.map((nweet) => (
           <Nweet
             key={nweet.id}
-            nweetObj={nweet}
-            isOwner={nweet.creatorId === userObj.uid}
+            nweet={nweet}
+            nweetObj={nweet.nweetObj}
+            isOwner={nweet.nweetObj.creatorId === userObj.uid}
           />
         ))}
       </div>
