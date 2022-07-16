@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAuth, updateProfile } from "firebase/auth";
 
-const Profile = ({ userObj }) => {
+const Profile = ({ refreshUser, userObj }) => {
   const [newDisplayName, setNewDisplayName] = useState(userObj.displayName);
   const auth = getAuth();
   let navigate = useNavigate();
@@ -22,6 +22,7 @@ const Profile = ({ userObj }) => {
       await updateProfile(userObj, {
         displayName: newDisplayName,
       });
+      refreshUser();
     }
   };
   return (
@@ -33,7 +34,7 @@ const Profile = ({ userObj }) => {
           placeholder="Display name"
           value={newDisplayName}
         />
-        <input type="submit" value="Updat Profile" />
+        <input type="submit" value="Update Profile" />
       </form>
       <button onClick={onLogOutClick}>Log Out</button>
     </>
